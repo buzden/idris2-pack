@@ -16,17 +16,17 @@ import Pack.Runner.Install
 toState : HasIO io => EitherT err io a -> StateT s io (Either err a)
 toState = lift . runEitherT
 
-updateRep :  HasIO io
-          => PkgName
-          -> Report
-          -> StateT ReportDB io Report
+updateRep : HasIO io =>
+            PkgName ->
+            Report ->
+            StateT ReportDB io Report
 updateRep p rep = modify (insert p rep) $> rep
 
-report :  HasIO io
-       => PkgName
-       -> SafeLib
-       -> EitherT PackErr io ()
-       -> StateT ReportDB io Report
+report : HasIO io =>
+         PkgName ->
+         SafeLib ->
+         EitherT PackErr io () ->
+         StateT ReportDB io Report
 report p rp act = do
   Right _ <- toState act | Left _ => updateRep p (Failure rp [])
   updateRep p (Success rp)
@@ -35,11 +35,11 @@ missing : ResolvedLib t -> ResolvedLib t
 missing = {status := Missing}
 
 covering
-checkPkg :  HasIO io
-         => IdrisEnv
-         => LibCache
-         => PkgName
-         -> StateT ReportDB io Report
+checkPkg : HasIO io =>
+           IdrisEnv =>
+           LibCache =>
+           PkgName ->
+           StateT ReportDB io Report
 checkPkg p = do
   Nothing  <- lookup p <$> get | Just rep => pure rep
   info "Checking \{p}"
@@ -55,12 +55,12 @@ checkPkg p = do
   updateRep p (Success rl)
 
 covering
-copyDocs :  HasIO io
-         => IdrisEnv
-         => LibCache
-         => File Abs
-         -> ReportDB
-         -> EitherT PackErr io ()
+copyDocs : HasIO io =>
+           IdrisEnv =>
+           LibCache =>
+           File Abs ->
+           ReportDB ->
+           EitherT PackErr io ()
 copyDocs f db = traverse_ go db
   where go : Report -> EitherT PackErr io ()
         go (Success rl) = do

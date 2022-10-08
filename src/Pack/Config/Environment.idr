@@ -187,13 +187,13 @@ pkgDocs n p = pkgPrefixDir n p /> "docs"
 ||| Timestamp used to monitor if a local library has been
 ||| modified and requires reinstalling.
 export %inline
-libTimestamp :  PackDir => DB => PkgName -> Package -> File Abs
+libTimestamp : PackDir => DB => PkgName -> Package -> File Abs
 libTimestamp n p = MkF (pkgPathDir n p) ".timestamp"
 
 ||| Timestamp used to monitor if a local app has been
 ||| modified and requires reinstalling.
 export %inline
-appTimestamp :  PackDir => DB => PkgName -> Package -> File Abs
+appTimestamp : PackDir => DB => PkgName -> Package -> File Abs
 appTimestamp n p = MkF (pkgBinDir n p) ".timestamp"
 
 ||| Directory where the sources of a local package are
@@ -229,10 +229,10 @@ export
 resolvedExec : PackDir => DB => ResolvedApp t -> File Abs
 resolvedExec (RA p n d _ exe _) = pkgExec n p exe
 
-pathDirs :  (HasIO io, PackDir, DB, Config)
-         => (pre : String)
-         -> (pth : PkgName -> Package -> Path Abs)
-         -> io String
+pathDirs : HasIO io => PackDir => DB => Config =>
+           (pre : String) ->
+           (pth : PkgName -> Package -> Path Abs) ->
+           io String
 pathDirs pre pth = do
   ps <- filterM (\(n,p) => exists $ pth n p) (SM.toList allPackages)
   let ps' := filter (not . isCorePkg . value . fst) ps
@@ -332,20 +332,20 @@ idrisWithCG = case e.config.codegen of
 ||| Idris executable loading the given package plus the
 ||| environment variables needed to run it.
 export
-idrisWithPkg :  HasIO io
-             => IdrisEnv
-             => ResolvedLib t
-             -> io (CmdArgList, List (String,String))
+idrisWithPkg : HasIO io =>
+               IdrisEnv =>
+               ResolvedLib t ->
+               io (CmdArgList, List (String,String))
 idrisWithPkg rl =
   (idrisWithCG ++ ["-p", name rl],) <$> buildEnv
 
 ||| Idris executable loading the given packages plus the
 ||| environment variables needed to run it.
 export
-idrisWithPkgs :  HasIO io
-              => IdrisEnv
-              => List (ResolvedLib t)
-              -> io (CmdArgList, List (String,String))
+idrisWithPkgs : HasIO io =>
+                IdrisEnv =>
+                List (ResolvedLib t) ->
+                io (CmdArgList, List (String,String))
 idrisWithPkgs [] = pure (idrisWithCG, [])
 idrisWithPkgs pkgs =
   let ps = concatMap (\p => ["-p", name p]) pkgs
@@ -395,12 +395,12 @@ defaultColl = do
 ||| meta commit, the hash is only fetched, if the corresponding commit
 ||| file is missing or `fetch` is set to `True`.
 export
-resolveMeta :  HasIO io
-            => PackDir
-            => (fetch : Bool)
-            -> URL
-            -> MetaCommit
-            -> EitherT PackErr io Commit
+resolveMeta : HasIO io =>
+              PackDir =>
+              (fetch : Bool) ->
+              URL ->
+              MetaCommit ->
+              EitherT PackErr io Commit
 resolveMeta _ u (MC x)     = pure x
 resolveMeta _ u (Fetch x)  = gitLatest u x
 resolveMeta b u (Latest x) = do
@@ -415,13 +415,13 @@ resolveMeta b u (Latest x) = do
 
 ||| Read application config from command line arguments.
 export covering
-getConfig :  (0 c : Type)
-          -> Command c
-          => HasIO io
-          => (pd        : PackDir)
-          => (td        : TmpDir)
-          => (cur       : CurDir)
-          => EitherT PackErr io (MetaConfig,c)
+getConfig : (0 c : Type) ->
+            Command c =>
+            HasIO io =>
+            (pd  : PackDir) =>
+            (td  : TmpDir) =>
+            (cur : CurDir) =>
+            EitherT PackErr io (MetaConfig,c)
 getConfig c = do
   -- relevant directories
   coll       <- defaultColl
@@ -487,14 +487,14 @@ loadDB mc = do
 ||| Load the package collection as given in the (auto-implicit) user config
 ||| and convert the result to a pack environment.
 export covering
-env :  HasIO io
-    => (pd    : PackDir)
-    => (td    : TmpDir)
-    => (ch    : LibCache)
-    => (lbf   : LineBufferingCmd)
-    => (c     : MetaConfig)
-    -> (fetch : Bool)
-    -> EitherT PackErr io Env
+env : HasIO io =>
+      (pd    : PackDir) =>
+      (td    : TmpDir) =>
+      (ch    : LibCache) =>
+      (lbf   : LineBufferingCmd) =>
+      (c     : MetaConfig) ->
+      (fetch : Bool) ->
+      EitherT PackErr io Env
 env mc fetch = do
   db <- loadDB mc
   c  <- traverse (resolveMeta fetch) db.idrisURL mc
@@ -513,10 +513,10 @@ adjCollection db str = case isPrefixOf "collection " str of
 ||| Update the `collection` field in file `PACK_DIR/user/pack.toml`
 ||| with the name of the package collection given in config `c`.
 export covering
-writeCollection :  HasIO io
-                => PackDir
-                => (c : Config)
-                => EitherT PackErr io ()
+writeCollection : HasIO io =>
+                  PackDir =>
+                  (c : Config) =>
+                  EitherT PackErr io ()
 writeCollection = do
   str <- read globalPackToml
   write globalPackToml (unlines . map (adjCollection c.collection) $ lines str)

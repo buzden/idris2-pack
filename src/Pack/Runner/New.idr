@@ -74,12 +74,12 @@ gitIgnoreFile =
 
 ||| Create a new package at current location
 export covering
-new :  HasIO io
-    => (curdir : CurDir)
-    -> PkgType
-    -> (pkgName : Body)
-    -> IdrisEnv
-    -> EitherT PackErr io ()
+new : HasIO io =>
+      (curdir : CurDir) ->
+      PkgType ->
+      (pkgName : Body) ->
+      IdrisEnv ->
+      EitherT PackErr io ()
 new (CD curdir) pty pkgName e = do
     debug "Creating new \{pty} package named \{pkgName}..."
     debug "Getting author name from git config"

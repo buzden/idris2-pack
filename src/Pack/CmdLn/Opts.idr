@@ -175,12 +175,12 @@ optionNames = foldMap names descs
 ||| @ init   : Initial config (possibly assebled from `pack.toml` files)
 ||| @ args   : List of command line arguments
 export
-applyArgs :  (0 c : Type)
-          -> Command c
-          => (curDir     : CurDir)
-          -> (init       : MetaConfig)
-          -> (args       : List String)
-          -> Either PackErr (MetaConfig, c)
+applyArgs : (0 c : Type) ->
+            Command c =>
+            (curDir     : CurDir) ->
+            (init       : MetaConfig) ->
+            (args       : List String) ->
+            Either PackErr (MetaConfig, c)
 applyArgs c dir init args =
   case getOpt RequireOrder descs args of
        MkResult opts n  []      []       => do

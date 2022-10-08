@@ -244,11 +244,11 @@ UserConfig = MConfig MetaCommit
 ||| stored in a configuration. This is mainly used to
 ||| resolve meta commits to mere commits.
 export
-traverse :  Applicative f
-         => (URL -> a -> f b)
-         -> (idrisURL : URL)
-         -> Config_ I a
-         -> f (Config_ I b)
+traverse : Applicative f =>
+           (URL -> a -> f b) ->
+           (idrisURL : URL) ->
+           Config_ I a ->
+           f (Config_ I b)
 traverse g idrisURL cfg =
   let iurl = fromMaybe idrisURL cfg.idrisURL
       purl = fromMaybe defaultPackRepo cfg.packURL
@@ -256,10 +256,10 @@ traverse g idrisURL cfg =
       ic  = traverse (g iurl) cfg.idrisCommit
       pc  = traverse (g purl) cfg.packCommit
    in [| adj ic pc cst |]
-    where adj :  (idrisCommit : Maybe b)
-              -> (packCommit  : Maybe b)
-              -> SortedMap DBName (SortedMap PkgName $ Package_ b)
-              -> Config_ I b
+    where adj : (idrisCommit : Maybe b) ->
+                (packCommit  : Maybe b) ->
+                SortedMap DBName (SortedMap PkgName $ Package_ b) ->
+                Config_ I b
           adj ic pc cb = {idrisCommit := ic, packCommit := pc, custom := cb} cfg
 
 ||| This allows us to use a `Config` in scope when we
@@ -378,19 +378,19 @@ emptyCache = newIORef SortedMap.empty
 
 ||| Cache a resolved library
 export
-cacheLib :  HasIO io
-         => (ref : LibCache)
-         => PkgName
-         -> ResolvedLib U
-         -> io (ResolvedLib U)
+cacheLib : HasIO io =>
+           (ref : LibCache) =>
+           PkgName ->
+           ResolvedLib U ->
+           io (ResolvedLib U)
 cacheLib n lib = modifyIORef ref (insert n lib) $> lib
 
 ||| Lookup a library in the cache
 export
-lookupLib :  HasIO io
-          => (ref : LibCache)
-          => PkgName
-          -> io (Maybe $ ResolvedLib U)
+lookupLib : HasIO io =>
+            (ref : LibCache) =>
+            PkgName ->
+            io (Maybe $ ResolvedLib U)
 lookupLib n = lookup n <$> readIORef ref
 
 ||| Environment used by most pack methods, consisting of
@@ -478,12 +478,12 @@ interface Command c where
   ||| config. For instance, `pack switch latest` must overwrite the
   ||| package collection read from the `pack.toml` files with the
   ||| latest package collection available.
-  adjConfig :  HasIO io
-            => PackDir
-            => TmpDir
-            => c
-            -> MetaConfig
-            -> EitherT PackErr io MetaConfig
+  adjConfig : HasIO io =>
+              PackDir =>
+              TmpDir =>
+              c ->
+              MetaConfig ->
+              EitherT PackErr io MetaConfig
 
   ||| Tries to read a command from a list of command line arguments.
   readCommand_ : CurDir -> List String -> Either PackErr c
@@ -497,9 +497,9 @@ defaultCommand _ = defaultCommand_
 ||| Convenience alias for `readCommand_` with an explicit
 ||| erased argument for the command type.
 export %inline
-readCommand :  (0 c : Type)
-            -> Command c
-            => CurDir
-            -> List String
-            -> Either PackErr c
+readCommand : (0 c : Type) ->
+              Command c =>
+              CurDir ->
+              List String ->
+              Either PackErr c
 readCommand _ = readCommand_

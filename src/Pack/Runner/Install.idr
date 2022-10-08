@@ -55,14 +55,14 @@ pthStr True = """
 -- where we first set the `IDRIS2_PACKAGE_PATH` variable
 -- before invoking the binary. For both cases, we let pack
 -- decide which version to use.
-appLink :  HasIO io
-        => (e: Env)
-        => PackDir
-        => (exec        : Body)
-        -> (app         : PkgName)
-        -> (withPkgPath : Bool)
-        -> (codeGen     : Codegen)
-        -> EitherT PackErr io ()
+appLink : HasIO io =>
+          (e: Env) =>
+          PackDir =>
+          (exec        : Body) ->
+          (app         : PkgName) ->
+          (withPkgPath : Bool) ->
+          (codeGen     : Codegen) ->
+          EitherT PackErr io ()
 appLink exec app withPkgPath cg =
   let
       interp  := case cg of
@@ -86,12 +86,12 @@ installCmd False = ["--install"]
 ||| Use the installed Idris to run an operation on
 ||| a library `.ipkg` file.
 export
-libPkg :  HasIO io
-       => IdrisEnv
-       => (env  : List (String,String))
-       -> (cmd  : CmdArgList)
-       -> (desc : Desc Safe)
-       -> EitherT PackErr io ()
+libPkg : HasIO io =>
+         IdrisEnv =>
+         (env  : List (String,String)) ->
+         (cmd  : CmdArgList) ->
+         (desc : Desc Safe) ->
+         EitherT PackErr io ()
 libPkg env cmd desc =
   let exe := idrisWithCG
       s   := exe ++ cmd ++ [desc.path.file]
@@ -131,11 +131,11 @@ withSrcStr = case c.withSrc of
   True  => " (with sources)"
   False => ""
 
-installImpl :  HasIO io
-            => (e : IdrisEnv)
-            => (dir : Path Abs)
-            -> SafeLib
-            -> EitherT PackErr io ()
+installImpl : HasIO io =>
+              (e : IdrisEnv) =>
+              (dir : Path Abs) ->
+              SafeLib ->
+              EitherT PackErr io ()
 installImpl dir rl =
   let pre := libInstallPrefix rl
       cmd := installCmd e.env.config.withSrc
@@ -148,7 +148,7 @@ installImpl dir rl =
 
 ||| Install the given resolved library.
 export
-installLib :  HasIO io => IdrisEnv => SafeLib -> EitherT PackErr io ()
+installLib : HasIO io => IdrisEnv => SafeLib -> EitherT PackErr io ()
 installLib rl = case rl.status of
   Installed => pure ()
   _         => withPkgEnv rl.name rl.pkg $ \dir =>
@@ -178,11 +178,11 @@ installLib rl = case rl.status of
 ||| Install an Idris application given as a package name
 ||| TODO: Install wrapper script only if necessary
 export covering
-installApp :  HasIO io
-           => IdrisEnv
-           => (withWrapperScript : Bool)
-           -> SafeApp
-           -> EitherT PackErr io ()
+installApp : HasIO io =>
+             IdrisEnv =>
+             (withWrapperScript : Bool) ->
+             SafeApp ->
+             EitherT PackErr io ()
 installApp b ra =
   let cg := ipkgCodeGen ra.desc.desc
   in case ra.status of
@@ -209,10 +209,10 @@ installApp b ra =
 
 ||| Install the given resolved library or application.
 export covering
-installAny :  HasIO io
-           => IdrisEnv
-           => SafePkg
-           -> EitherT PackErr io ()
+installAny : HasIO io =>
+             IdrisEnv =>
+             SafePkg ->
+             EitherT PackErr io ()
 installAny (Lib sli)   = installLib sli
 installAny (App b sla) = installApp b sla
 
@@ -221,10 +221,10 @@ installAny (App b sla) = installApp b sla
 --------------------------------------------------------------------------------
 
 covering
-docsImpl :  HasIO io
-         => (e : IdrisEnv)
-         => SafeLib
-         -> EitherT PackErr io ()
+docsImpl : HasIO io =>
+           (e : IdrisEnv) =>
+           SafeLib ->
+           EitherT PackErr io ()
 docsImpl rl = do
   let docsDir : Path Abs
       docsDir = buildPath rl.desc /> "docs"
@@ -249,10 +249,10 @@ docsImpl rl = do
 
 ||| Install the API docs for the given resolved library.
 export covering
-installDocs :  HasIO io
-            => IdrisEnv
-            => SafeLib
-            -> EitherT PackErr io ()
+installDocs : HasIO io =>
+              IdrisEnv =>
+              SafeLib ->
+              EitherT PackErr io ()
 installDocs rl = do
   withPkgEnv rl.name rl.pkg $ \dir => docsImpl rl
 
@@ -275,10 +275,10 @@ appInfo = mapMaybe $ \case App _ ra => Just "\{ra.name}"
 ||| resolving each of them and then creating a build plan including
 ||| all dependencies of the lot.
 export covering
-install :  HasIO io
-        => (e : IdrisEnv)
-        => List (InstallType, PkgName)
-        -> EitherT PackErr io ()
+install : HasIO io =>
+          (e : IdrisEnv) =>
+          List (InstallType, PkgName) ->
+          EitherT PackErr io ()
 install ps = do
   all <- plan $ katla <+> autoPairs <+> ps
   logMany Info "Installing libraries:" (libInfo all)
@@ -292,22 +292,22 @@ install ps = do
 ||| Install the (possibly transitive) dependencies of the given
 ||| loaded `.ipkg` file.
 export covering
-installDeps :  HasIO io
-            => IdrisEnv
-            => Desc Safe
-            -> EitherT PackErr io ()
+installDeps : HasIO io =>
+              IdrisEnv =>
+              Desc Safe ->
+              EitherT PackErr io ()
 installDeps = install . map (Library,) . dependencies
 
 ||| Creates a packaging environment with Idris2 installed.
 export covering
-idrisEnv :  HasIO io
-         => PackDir
-         => TmpDir
-         => LibCache
-         => LineBufferingCmd
-         => MetaConfig
-         -> (fetch : Bool)
-         -> EitherT PackErr io IdrisEnv
+idrisEnv : HasIO io =>
+           PackDir =>
+           TmpDir =>
+           LibCache =>
+           LineBufferingCmd =>
+           MetaConfig ->
+           (fetch : Bool) ->
+           EitherT PackErr io IdrisEnv
 idrisEnv mc fetch = env mc fetch >>= (\e => mkIdris)
 
 ||| Update the pack installation

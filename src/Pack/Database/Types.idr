@@ -129,21 +129,21 @@ data Package_ : (c : Type) -> Type where
   ||| `pkgPath` should be set to `True` for executables which need
   ||| access to the `IDRIS2_PACKAGE_PATH`: The list of directories
   ||| where Idris packages are installed.
-  GitHub :  (url     : URL)
-         -> (commit  : c)
-         -> (ipkg    : File Rel)
-         -> (pkgPath : Bool)
-         -> Package_ c
+  GitHub : (url     : URL) ->
+           (commit  : c) ->
+           (ipkg    : File Rel) ->
+           (pkgPath : Bool) ->
+           Package_ c
 
   ||| A local Idris project given as an absolute path to a local
   ||| directory, and `.ipkg` file to use.
   ||| `pkgPath` should be set to `True` for executable which need
   ||| access to the `IDRIS2_PACKAGE_PATH`: The list of directories
   ||| where Idris packages are installed.
-  Local  :  (dir     : Path Abs)
-         -> (ipkg    : File Rel)
-         -> (pkgPath : Bool)
-         -> Package_ c
+  Local  : (dir     : Path Abs) ->
+           (ipkg    : File Rel) ->
+           (pkgPath : Bool) ->
+           Package_ c
 
   ||| A core package of the Idris2 project
   Core   : (core : CorePkg) -> Package_ c
@@ -253,9 +253,9 @@ ipkg dir (Core c)         = toAbsFile dir (coreIpkgPath c)
 ||| a timestamp created during package installation.
 public export
 data PkgStatus : Package -> Type where
-  Missing   :  PkgStatus p
-  Installed :  PkgStatus p
-  Outdated  :  (0 isLocal : IsLocal p) => PkgStatus p
+  Missing   : PkgStatus p
+  Installed : PkgStatus p
+  Outdated  : (0 isLocal : IsLocal p) => PkgStatus p
 
 ||| A resolved library, which was downloaded from GitHub
 ||| or looked up in the local file system. This comes with
@@ -292,18 +292,18 @@ namespace AppStatus
   public export
   data AppStatus : Package -> Type where
     ||| The app has not been compiled and is therfore missing
-    Missing      :  AppStatus p
+    Missing      : AppStatus p
 
     ||| The app has been built but is not on the `PATH`.
-    Installed    :  AppStatus p
+    Installed    : AppStatus p
 
     ||| The app has been built and a wrapper script has been added
     ||| to `$PACK_DIR/bin`, so it should be on the `PATH`.
-    BinInstalled :  AppStatus p
+    BinInstalled : AppStatus p
 
     ||| The local app has changes in its source files, which have
     ||| not yet been included in the installed version.
-    Outdated     :  (0 isLocal : IsLocal p) => AppStatus p
+    Outdated     : (0 isLocal : IsLocal p) => AppStatus p
 
 ||| A resolved application, which was downloaded from GitHub
 ||| or looked up in the local file system. This comes with

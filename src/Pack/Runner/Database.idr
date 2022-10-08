@@ -89,20 +89,20 @@ notPack d = do
 
 ||| Parse an `.ipkg` file and check if it has custom build hooks.
 export
-parseLibIpkg :  HasIO io
-             => (e : Env)
-             => (file : File Abs)
-             -> (loc : File Abs)
-             -> EitherT PackErr io (Desc Safe)
+parseLibIpkg : HasIO io =>
+               (e : Env) =>
+               (file : File Abs) ->
+               (loc : File Abs) ->
+               EitherT PackErr io (Desc Safe)
 parseLibIpkg p loc = parseIpkgFile p loc >>= safe
 
 ||| Parse an `.ipkg` file from a command line arg or a local
 ||| package given as a package name and check if it has custom build hooks.
 export
-findAndParseLocalIpkg :  HasIO io
-                      => (e    : Env)
-                      => (file : Either (File Abs) PkgName)
-                      -> EitherT PackErr io (Desc Safe)
+findAndParseLocalIpkg : HasIO io =>
+                        (e    : Env) =>
+                        (file : Either (File Abs) PkgName) ->
+                        EitherT PackErr io (Desc Safe)
 findAndParseLocalIpkg (Left p)  = parseLibIpkg p p
 findAndParseLocalIpkg (Right n) =
   case lookup n allPackages of
@@ -115,11 +115,11 @@ findAndParseLocalIpkg (Right n) =
 ||| and check if it has no custom build hooks and does not produce
 ||| an executable called "pack".
 export
-parseAppIpkg :  HasIO io
-             => Env
-             => (file : File Abs)
-             -> (loc : File Abs)
-             -> EitherT PackErr io (Desc NotPack)
+parseAppIpkg : HasIO io =>
+               Env =>
+               (file : File Abs) ->
+               (loc  : File Abs) ->
+               EitherT PackErr io (Desc NotPack)
 parseAppIpkg p loc = parseIpkgFile p loc >>= notPack
 
 ||| Check if a resolved library is safe to install (prompt, if it uses
@@ -149,20 +149,20 @@ checkLOA (App b x) = App b <$> safeApp x
 
 ||| Run a pack action in the directory of the cloned Idris repository.
 export
-withCoreGit : HasIO io
-            => (e : Env)
-            => (Path Abs -> EitherT PackErr io a)
-            -> EitherT PackErr io a
+withCoreGit : HasIO io =>
+              (e : Env) =>
+              (Path Abs -> EitherT PackErr io a) ->
+              EitherT PackErr io a
 withCoreGit = withGit tmpDir compiler e.db.idrisURL e.db.idrisCommit
 
 ||| Run a pack action in the directory of a (possibly cloned) package.
 export
-withPkgEnv :  HasIO io
-             => Env
-             => PkgName
-             -> Package
-             -> (Path Abs -> EitherT PackErr io a)
-             -> EitherT PackErr io a
+withPkgEnv : HasIO io =>
+             Env =>
+             PkgName ->
+             Package ->
+             (Path Abs -> EitherT PackErr io a) ->
+             EitherT PackErr io a
 withPkgEnv n (GitHub u c i _) f = withGit tmpDir n u c f
 withPkgEnv n (Local d i _)    f = inDir d f
 withPkgEnv n (Core _)         f = withCoreGit f
@@ -174,13 +174,13 @@ isOutdated _                 = False
 -- tests if the files in a directory are new compare to
 -- a timestamp file, and returns one of two possible results
 -- accordingly
-checkOutdated :  HasIO io
-              => (ts         : File Abs)
-              -> (dir        : Path Abs)
-              -> (deps       : List (DPair Package PkgStatus))
-              -> (ifOutdated : a)
-              -> (ifUpToDate : a)
-              -> EitherT PackErr io a
+checkOutdated : HasIO io =>
+                (ts         : File Abs) ->
+                (dir        : Path Abs) ->
+                (deps       : List (DPair Package PkgStatus)) ->
+                (ifOutdated : a) ->
+                (ifUpToDate : a) ->
+                EitherT PackErr io a
 checkOutdated ts src deps o u =
   if any isOutdated deps
     then pure o
@@ -190,13 +190,13 @@ checkOutdated ts src deps o u =
       pure u
 
 -- checks the status of a library
-libStatus :  HasIO io
-          => Env
-          => PkgName
-          -> (p    : Package)
-          -> (d    : Desc t)
-          -> (deps : List (DPair Package PkgStatus))
-          -> EitherT PackErr io (PkgStatus p)
+libStatus : HasIO io =>
+            Env =>
+            PkgName ->
+            (p    : Package) ->
+            (d    : Desc t) ->
+            (deps : List (DPair Package PkgStatus)) ->
+            EitherT PackErr io (PkgStatus p)
 libStatus n p d deps = do
   True <- exists (pkgInstallDir n p d) | False => pure Missing
   b    <- exists $ pkgDocs n p
@@ -209,14 +209,14 @@ libStatus n p d deps = do
 
 ||| Generates the `AppStatus` of a package representing an application.
 export
-appStatus :  HasIO io
-          => Env
-          => PkgName
-          -> (p    : Package)
-          -> (d    : Desc t)
-          -> (deps : List (DPair Package PkgStatus))
-          -> (exe  : Body)
-          -> EitherT PackErr io (AppStatus p)
+appStatus : HasIO io =>
+            Env =>
+            PkgName ->
+            (p    : Package) ->
+            (d    : Desc t) ->
+            (deps : List (DPair Package PkgStatus)) ->
+            (exe  : Body) ->
+            EitherT PackErr io (AppStatus p)
 appStatus n p d deps exe = do
   True      <- fileExists (pkgExec n p exe) | False => pure Missing
   installed <- do
@@ -236,11 +236,11 @@ cacheCoreIpkgFiles : HasIO io => Env => Path Abs -> EitherT PackErr io ()
 cacheCoreIpkgFiles dir = for_ corePkgs $ \c =>
   copyFile (toAbsFile dir (coreIpkgPath c)) (coreCachePath c)
 
-loadIpkg :  HasIO io
-         => (e : Env)
-         => PkgName
-         -> Package
-         -> EitherT PackErr io (Desc U)
+loadIpkg : HasIO io =>
+           (e : Env) =>
+           PkgName ->
+           Package ->
+           EitherT PackErr io (Desc U)
 loadIpkg n (GitHub u c i _) =
   let cache  := ipkgCachePath n c i
       tmpLoc := gitDir tmpDir n c </> i
@@ -296,11 +296,11 @@ resolveApp n = do
 ||| This will look up the package name in the current package collection
 ||| and will fetch and read its (possibly cached) `.ipkg` file.
 export covering
-resolveAny :  HasIO io
-           => Env
-           => InstallType
-           -> PkgName
-           -> EitherT PackErr io (LibOrApp U U)
+resolveAny : HasIO io =>
+             Env =>
+             InstallType ->
+             PkgName ->
+             EitherT PackErr io (LibOrApp U U)
 resolveAny Library n = Lib   <$> resolveLib n
 resolveAny (App b) n = App b <$> resolveApp n
 
@@ -340,16 +340,16 @@ showPlan = unlines . map (\(t,n) => "\{t} \{n}")
 
 ||| Resolve the (transitive) dependencies of the given libs and apps.
 export covering
-transitiveDeps :  HasIO io
-               => Env
-               => List (InstallType, PkgName)
-               -> EitherT PackErr io (List $ LibOrApp U U)
+transitiveDeps : HasIO io =>
+                 Env =>
+                 List (InstallType, PkgName) ->
+                 EitherT PackErr io (List $ LibOrApp U U)
 transitiveDeps ps = go empty Lin (map Right ps)
   where covering
-        go :  (planned  : SortedMap (InstallType, PkgName) ())
-           -> (resolved : SnocList $ LibOrApp U U)
-           -> List (Either (LibOrApp U U) (InstallType,PkgName))
-           -> EitherT PackErr io (List $ LibOrApp U U)
+        go : (planned  : SortedMap (InstallType, PkgName) ()) ->
+             (resolved : SnocList $ LibOrApp U U) ->
+             List (Either (LibOrApp U U) (InstallType,PkgName)) ->
+             EitherT PackErr io (List $ LibOrApp U U)
         go ps sx []             = pure (sx <>> [])
 
         -- the lib or app has already been resolved and
@@ -378,10 +378,10 @@ transitiveDeps ps = go empty Lin (map Right ps)
 ||| All packages depend on the prelude and
 ||| base, so we make sure these are installed as well.
 export covering
-plan :  HasIO io
-     => Env
-     => List (InstallType, PkgName)
-     -> EitherT PackErr io (List SafePkg)
+plan : HasIO io =>
+       Env =>
+       List (InstallType, PkgName) ->
+       EitherT PackErr io (List SafePkg)
 plan ps =
   let ps' := (Library, "prelude") :: (Library, "base") :: ps
    in do

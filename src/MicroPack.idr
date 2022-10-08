@@ -15,9 +15,9 @@ import System
 
 %default total
 
-microInit :  (scheme : String)
-          -> (db     : DBName)
-          ->  MetaConfig
+microInit : (scheme : String) ->
+            (db     : DBName) ->
+            MetaConfig
 microInit scheme db = MkConfig {
     collection    = db
   , idrisURL      = Nothing

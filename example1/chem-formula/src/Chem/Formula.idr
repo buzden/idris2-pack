@@ -34,12 +34,12 @@ m1 <= m2 = Either (m1 < m2) (m1 === m2)
 public export
 data Repr : (ix : Maybe String) -> Type where
   Nil : Repr Nothing
-  (::) :  {0 ix : _}
-       -> (p     : (Elem,Nat))
-       -> (ps    : Repr ix)
-       -> (0 prf : Just (hill $ fst p) < ix)
-       => (0 nz  : IsSucc (snd p))
-       => Repr (Just $ hill $ fst p)
+  (::) : {0 ix  : _} ->
+         (p     : (Elem,Nat)) ->
+         (ps    : Repr ix) ->
+         (0 prf : Just (hill $ fst p) < ix) =>
+         (0 nz  : IsSucc (snd p)) =>
+         Repr (Just $ hill $ fst p)
 
 --------------------------------------------------------------------------------
 --          Merging Formulae
@@ -56,36 +56,36 @@ record MergeRes (h1,h2 : Maybe String) where
   0 prf  : Either (h1 === hx) (h2 === hx)
 
 %inline
-prepLT : (p : (Elem,Nat))
-       -> MergeRes h1 (Just k2)
-       -> (0 prf1 : Just (hill $ fst p) < h1)
-       => (0 prf2 : Just (hill $ fst p) < Just k2)
-       => (0 nz   : IsSucc (snd p))
-       => MergeRes (Just $ hill $ fst p) (Just k2)
+prepLT : (p : (Elem,Nat)) ->
+         MergeRes h1 (Just k2) ->
+         (0 prf1 : Just (hill $ fst p) < h1) =>
+         (0 prf2 : Just (hill $ fst p) < Just k2) =>
+         (0 nz   : IsSucc (snd p)) =>
+         MergeRes (Just $ hill $ fst p) (Just k2)
 prepLT p (MR ps prf) =
   let 0 lt = either (trans_LT_EQ prf1) (trans_LT_EQ prf2) prf
    in MR (p :: ps) (Left Refl)
 
 %inline
-prepGT : (p : (Elem,Nat))
-       -> MergeRes (Just k1) e2
-       -> (0 prf1 : Just (hill $ fst p) < e2)
-       => (0 prf2 : Just (hill $ fst p) < Just k1)
-       => (0 nz   : IsSucc (snd p))
-       => MergeRes (Just k1) (Just $ hill $ fst p)
+prepGT : (p : (Elem,Nat)) ->
+         MergeRes (Just k1) e2 ->
+         (0 prf1 : Just (hill $ fst p) < e2) =>
+         (0 prf2 : Just (hill $ fst p) < Just k1) =>
+         (0 nz   : IsSucc (snd p)) =>
+         MergeRes (Just k1) (Just $ hill $ fst p)
 prepGT p (MR ps prf) =
   let 0 lt = either (trans_LT_EQ prf2) (trans_LT_EQ prf1) prf
    in MR (p :: ps) (Right Refl)
 
 %inline
-prepEQ :  {0 x : Maybe String}
-       -> (p : (Elem,Nat))
-       -> (0 eq  : hill (fst p) === k)
-       -> MergeRes h1 h2
-       -> (0 prf1 : Just (hill $ fst p) < h1)
-       => (0 prf2 : Just k < h2)
-       => (0 nz   : IsSucc (snd p))
-       => MergeRes (Just $ hill $ fst p) x
+prepEQ : {0 x : Maybe String} ->
+         (p : (Elem,Nat)) ->
+         (0 eq  : hill (fst p) === k) ->
+         MergeRes h1 h2 ->
+         (0 prf1 : Just (hill $ fst p) < h1) =>
+         (0 prf2 : Just k < h2) =>
+         (0 nz   : IsSucc (snd p)) =>
+         MergeRes (Just $ hill $ fst p) x
 prepEQ p eq (MR ps prf) =
   let 0 fstp_lt_m2 = rewrite eq in prf2
       0 lt = either (trans_LT_EQ prf1) (trans_LT_EQ fstp_lt_m2) prf

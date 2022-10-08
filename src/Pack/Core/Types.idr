@@ -686,10 +686,10 @@ data PackErr : Type where
 
   ||| The given core package (base, contrib, etc.)
   ||| is missing from the Idris installation.
-  MissingCorePackage :  (name    : PkgName)
-                     -> (version : PkgVersion)
-                     -> (commit  : Commit)
-                     -> PackErr
+  MissingCorePackage : (name    : PkgName) ->
+                       (version : PkgVersion) ->
+                       (commit  : Commit) ->
+                       PackErr
 
   ||| Unknown command line argument
   UnknownArg : (arg : String) -> PackErr
@@ -713,7 +713,7 @@ data PackErr : Type where
   DirExists : Path Abs -> PackErr
 
   ||| Error in a toml file.
-  TOMLFile :  (file : File Abs) -> (err : TOMLErr) -> PackErr
+  TOMLFile : (file : File Abs) -> (err : TOMLErr) -> PackErr
 
   ||| Error in a toml file.
   TOMLParse : (file : File Abs) -> (err : String) -> PackErr

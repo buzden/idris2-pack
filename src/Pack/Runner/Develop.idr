@@ -12,19 +12,19 @@ import Pack.Runner.Query
 %default total
 
 covering
-runIdrisOn :  HasIO io
-           => IdrisEnv
-           => (cmd : CmdArgList)
-           -> Desc Safe
-           -> EitherT PackErr io ()
+runIdrisOn : HasIO io =>
+             IdrisEnv =>
+             (cmd : CmdArgList) ->
+             Desc Safe ->
+             EitherT PackErr io ()
 runIdrisOn c d = do
   installDeps d
   libPkg [] c d
 
-findIpkg :  HasIO io
-         => WithIpkg
-         -> Maybe (File Abs)
-         -> EitherT PackErr io (Maybe $ File Abs)
+findIpkg : HasIO io =>
+           WithIpkg ->
+           Maybe (File Abs) ->
+           EitherT PackErr io (Maybe $ File Abs)
 findIpkg (Search $ CD dir) fi =
   let searchDir := maybe dir parent fi
    in findInParentDirs isIpkgBody searchDir
@@ -33,11 +33,11 @@ findIpkg (Use x)      _  = pure (Just x)
 
 -- returns the direct dependencies to be included in a REPL session
 covering
-replDeps :  HasIO io
-         => (e : IdrisEnv)
-         => Maybe (Desc Safe)
-         -> Autoload
-         -> EitherT PackErr io (List PkgName)
+replDeps : HasIO io =>
+           (e : IdrisEnv) =>
+           Maybe (Desc Safe) ->
+           Autoload ->
+           EitherT PackErr io (List PkgName)
 replDeps _        (ForcePkgs ps) = pure ps
 replDeps (Just d) _              = pure $ dependencies d
 replDeps Nothing  NoPkgs         = pure $ []
@@ -47,10 +47,10 @@ replDeps Nothing  Installed      =
   map name . filter installedLib <$> resolveAll
 
 covering
-replOpts :  HasIO io
-         => (e : IdrisEnv)
-         => (file : Maybe $ File Abs)
-         -> EitherT PackErr io (CmdArgList, Codegen, Maybe $ File Abs)
+replOpts : HasIO io =>
+           (e : IdrisEnv) =>
+           (file : Maybe $ File Abs) ->
+           EitherT PackErr io (CmdArgList, Codegen, Maybe $ File Abs)
 replOpts mf = do
   mp   <- findIpkg e.env.config.withIpkg mf
   for_ mp $ \p => info "Found `.ipkg` file at \{p}"
@@ -78,10 +78,10 @@ srcFileRelativeToIpkg (Just ipkg) (Just idr) =
 ||| Use the installed Idris to start a REPL session with the
 ||| given argument string.
 export covering
-idrisRepl :  HasIO io
-          => (file : Maybe $ File Abs)
-          -> IdrisEnv
-          -> EitherT PackErr io ()
+idrisRepl : HasIO io =>
+            (file : Maybe $ File Abs) ->
+            IdrisEnv ->
+            EitherT PackErr io ()
 idrisRepl mf e = do
   (opts, _, mp) <- replOpts mf
   pth  <- packagePath
@@ -100,11 +100,11 @@ idrisRepl mf e = do
 ||| Use the installed Idris to compile the given source file
 ||| and invoke its main function with the given argument list.
 export covering
-exec :  HasIO io
-     => (file : File Abs)
-     -> (args : CmdArgList)
-     -> IdrisEnv
-     -> EitherT PackErr io ()
+exec : HasIO io =>
+       (file : File Abs) ->
+       (args : CmdArgList) ->
+       IdrisEnv ->
+       EitherT PackErr io ()
 exec file args e = do
   (opts, cg, mp) <- replOpts (Just file)
   pth  <- packagePath
@@ -126,45 +126,45 @@ exec file args e = do
 
 ||| Build a local library given as an `.ipkg` file.
 export covering %inline
-build :  HasIO io
-      => Either (File Abs) PkgName
-      -> IdrisEnv
-      -> EitherT PackErr io ()
+build : HasIO io =>
+        Either (File Abs) PkgName ->
+        IdrisEnv ->
+        EitherT PackErr io ()
 build f e = findAndParseLocalIpkg f >>= runIdrisOn ["--build"]
 
 ||| Install dependencies of a local `.ipkg` file or package name
 export covering
-buildDeps :  HasIO io
-          => Either (File Abs) PkgName
-          -> IdrisEnv
-          -> EitherT PackErr io ()
+buildDeps : HasIO io =>
+            Either (File Abs) PkgName ->
+            IdrisEnv ->
+            EitherT PackErr io ()
 buildDeps f e = do
   d <- findAndParseLocalIpkg f
   installDeps d
 
 ||| Typecheck a local library given as an `.ipkg` file or package name
 export covering %inline
-typecheck :  HasIO io
-          => Either (File Abs) PkgName
-          -> IdrisEnv
-          -> EitherT PackErr io ()
+typecheck : HasIO io =>
+            Either (File Abs) PkgName ->
+            IdrisEnv ->
+            EitherT PackErr io ()
 typecheck f e = findAndParseLocalIpkg f >>= runIdrisOn ["--typecheck"]
 
 ||| Cleanup a local library given as an `.ipkg` file or package name
 export covering %inline
-clean :  HasIO io
-          => Either (File Abs) PkgName
-          -> IdrisEnv
-          -> EitherT PackErr io ()
+clean : HasIO io =>
+        Either (File Abs) PkgName ->
+        IdrisEnv ->
+        EitherT PackErr io ()
 clean f e = findAndParseLocalIpkg f >>= libPkg [] ["--clean"]
 
 ||| Build and execute a local `.ipkg` file.
 export covering
-runIpkg :  HasIO io
-        => File Abs
-        -> (args : CmdArgList)
-        -> IdrisEnv
-        -> EitherT PackErr io ()
+runIpkg : HasIO io =>
+          File Abs ->
+          (args : CmdArgList) ->
+          IdrisEnv ->
+          EitherT PackErr io ()
 runIpkg p args e = do
   d        <- parseLibIpkg p p
   Just exe <- pure (execPath d) | Nothing => throwE (NoAppIpkg p)
@@ -175,11 +175,11 @@ runIpkg p args e = do
 
 ||| Install and run an executable given as a package name.
 export covering
-execApp :  HasIO io
-        => PkgName
-        -> (args : CmdArgList)
-        -> IdrisEnv
-        -> EitherT PackErr io ()
+execApp : HasIO io =>
+          PkgName ->
+          (args : CmdArgList) ->
+          IdrisEnv ->
+          EitherT PackErr io ()
 execApp p args e = do
   ref <- emptyCache
   ra <- resolveApp p

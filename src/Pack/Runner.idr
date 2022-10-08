@@ -15,10 +15,10 @@ import Pack.Runner.New
 ipkgFile : CurDir -> String -> (File Abs -> Cmd) -> Either PackErr Cmd
 ipkgFile (CD dir) s f = f <$> readAbsFile dir s
 
-pkgOrIpkg :  CurDir
-          -> String
-          -> (Either (File Abs) PkgName -> Cmd)
-          -> Either PackErr Cmd
+pkgOrIpkg : CurDir ->
+            String ->
+            (Either (File Abs) PkgName -> Cmd) ->
+            Either PackErr Cmd
 pkgOrIpkg (CD dir) s f = case readAbsFile dir s of
   Left  _    => Right (f . Right $ MkPkgName s)
   Right file => if isIpkgBody file.file

@@ -86,10 +86,10 @@ resolveAll = do
 --------------------------------------------------------------------------------
 
 covering
-query_ :  HasIO io
-       => Env
-       => (q : QPkg -> Maybe b)
-       -> EitherT PackErr io (List b)
+query_ : HasIO io =>
+         Env =>
+         (q : QPkg -> Maybe b) ->
+         EitherT PackErr io (List b)
 query_ q = mapMaybe q <$> resolveAll
 
 shortDesc : QPkg -> Maybe String
@@ -183,11 +183,11 @@ resultString _ _      qp = case c.queryType of
   Ipkg => unlines $ nameStr qp :: map (indent 2) (lines qp.lib.desc.cont)
 
 export covering
-query :  HasIO io
-      => QueryMode
-      -> String
-      -> Env
-      -> EitherT PackErr io ()
+query : HasIO io =>
+        QueryMode ->
+        String ->
+        Env ->
+        EitherT PackErr io ()
 query m n e = do
   ss <- query_ $ \p => toMaybe (keep m n p) (resultString n m p)
   putStrLn $ unlines ss
@@ -244,10 +244,10 @@ printInfo e = resolveAll >>= putStrLn . infoString
 --------------------------------------------------------------------------------
 
 covering
-installedPkgs :  HasIO io
-              => IdrisEnv
-              => List PkgName
-              -> EitherT PackErr io (List QPkg, List QPkg)
+installedPkgs : HasIO io =>
+                IdrisEnv =>
+                List PkgName ->
+                EitherT PackErr io (List QPkg, List QPkg)
 installedPkgs ns = do
   all <- filter installedLib <$> resolveAll
   pure (all, filter inPkgs all)
@@ -274,12 +274,12 @@ fuzzyTrim = unlines
           . filter (pre /=)
           . lines
 
-fuzzyPkg :  HasIO io
-         => IdrisEnv
-         => String
-         -> (allPkgs   : List QPkg)
-         -> QPkg
-         -> EitherT PackErr io ()
+fuzzyPkg : HasIO io =>
+           IdrisEnv =>
+           String ->
+           (allPkgs : List QPkg) ->
+           QPkg ->
+           EitherT PackErr io ()
 fuzzyPkg q allPkgs qp = do
   mkDir tmpDir
   finally (rmDir tmpDir) $ inDir tmpDir $ \d => do
@@ -295,11 +295,11 @@ fuzzyPkg q allPkgs qp = do
       False => putStrLn (fuzzyTrim str)
 
 export covering
-fuzzy :  HasIO io
-      => List PkgName
-      -> String
-      -> IdrisEnv
-      -> EitherT PackErr io ()
+fuzzy : HasIO io =>
+        List PkgName ->
+        String ->
+        IdrisEnv ->
+        EitherT PackErr io ()
 fuzzy m q e = do
   (allPkgs,rps) <- installedPkgs m
   traverse_ (fuzzyPkg q allPkgs) rps

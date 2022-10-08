@@ -23,24 +23,24 @@ import Data.Vect
 |||
 ||| @a       : Result type in case of a success.
 public export
-data Res :  (canFail : Bool)
-         -> (strict  : Bool)
-         -> (ts      : List tok)
-         -> (err     : Type)
-         -> (a       : Type)
-         -> Type where
+data Res : (canFail : Bool) ->
+           (strict  : Bool) ->
+           (ts      : List tok) ->
+           (err     : Type) ->
+           (a       : Type) ->
+           Type where
   ||| Failure state
-  N :  (ve : err) -> Res True strict ts err a
+  N : (ve : err) -> Res True strict ts err a
 
   ||| Success state
   |||
   ||| This contains an erased proof that the remaining
   ||| list of tokens is a (possibly strict) suffix
   ||| of the input list.
-  Y :  (va   : a)
-    -> (toks : List t)
-    -> (0 prf : Suffix_ strict toks ts)
-    -> Res canFail strict ts err a
+  Y : (va   : a) ->
+      (toks : List t) ->
+      (0 prf : Suffix_ strict toks ts) ->
+      Res canFail strict ts err a
 
 ||| Alias for parsing steps that will always succeed.
 ||| These must be non-strict, since they will return
@@ -68,10 +68,10 @@ ResS = Res True True
 ||| list `ts` on its own, which is typically the case if
 ||| we just consume part of a list by pattern matching.
 public export
-y :  (toks : List tok)
-  -> {auto 0 prf : Suffix_ strict toks ts}
-  -> (va : a)
-  -> Res canFail strict ts err a
+y : (toks : List tok) ->
+    {auto 0 prf : Suffix_ strict toks ts} ->
+    (va : a) ->
+    Res canFail strict ts err a
 y toks va = Y va toks prf
 
 ||| This is a more efficient version of `mapRes`
@@ -111,10 +111,10 @@ splitAt _     ts       = y ts Nil
 ||| a `Vect n` instead of a `List` as a proof that the result
 ||| is of exactly the right length.
 export
-splitAtStrict :  (n     : Nat)
-              -> (ts    : List tok)
-              -> (error : Lazy err)
-              -> Res True (isSucc n) ts err (Vect n tok)
+splitAtStrict : (n     : Nat) ->
+                (ts    : List tok) ->
+                (error : Lazy err) ->
+                Res True (isSucc n) ts err (Vect n tok)
 splitAtStrict 0     ts        e = y ts []
 splitAtStrict (S k) (x :: xs) e =
   let Y v t p = splitAtStrict k xs e | N e' => N e'
@@ -154,10 +154,10 @@ parseDigits f cs =
 ||| Like `parseDigits` but uses the given default value
 ||| in case of an empty list of digits.
 export
-parseDigitsDef :  a
-               -> (f : String -> Either err a)
-               -> (cs : List Char)
-               -> ResM cs err a
+parseDigitsDef : a ->
+                 (f : String -> Either err a) ->
+                 (cs : List Char) ->
+                 ResM cs err a
 parseDigitsDef def f cs = case digits {err} cs of
   Y [] _ _ => y cs def
   Y ds t p => either N (y t) (f $ pack ds)
